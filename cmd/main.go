@@ -1,10 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"os"
+	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 func getResponseBody(req *http.Request) (*string, error) {
@@ -27,19 +33,39 @@ func getResponseBody(req *http.Request) (*string, error) {
 
 func main() {
 	fmt.Println("Hello world!")
-	req, err := http.NewRequest(http.MethodGet, "http://google.com", nil)
+	// req, err := http.NewRequest(http.MethodGet, "http://google.com", nil)
+
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	os.Exit(1)
+	// }
+
+	// body, err := getResponseBody(req)
+
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	os.Exit(1)
+	// }
+
+	// fmt.Println(*body)
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
-	body, err := getResponseBody(req)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	err = client.Connect(ctx)
 
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
-	fmt.Println(*body)
+	err = client.Ping(ctx, readpref.Primary())
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	println("All was well :D")
 }
