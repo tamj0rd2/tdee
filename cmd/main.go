@@ -7,23 +7,39 @@ import (
 	"os"
 )
 
-func main() {
-	fmt.Println("Hello world!")
-
-	res, err := http.Get("http://google.com")
+func getResponseBody(req *http.Request) (*string, error) {
+	res, err := http.DefaultClient.Do(req)
 
 	if err != nil {
-		fmt.Println("Error making a request to google :(")
-		os.Exit(1)
+		return nil, err
 	}
 
 	defer res.Body.Close()
 
 	bodyBytes, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		fmt.Println("Couldn't read the response body :(")
+		return nil, err
 	}
 
 	bodyString := string(bodyBytes)
-	fmt.Println(bodyString)
+	return &bodyString, nil
+}
+
+func main() {
+	fmt.Println("Hello world!")
+	req, err := http.NewRequest(http.MethodGet, "http://google.com", nil)
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	body, err := getResponseBody(req)
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Println(*body)
 }
